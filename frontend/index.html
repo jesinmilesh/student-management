@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Management Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Header / Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand">
+        <span class="brand-icon">🎓</span>
+        <div>
+          <h1>StudentHub</h1>
+          <p class="subtitle">Student Management System</p>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div id="userInfo" class="user-badge guest">
+          <span class="status-dot"></span>
+          <span id="userStatusText">Browsing as Guest</span>
+        </div>
+        <button id="authBtn" class="btn btn-primary" onclick="openAuthModal()">Login</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="main-container">
+
+    <!-- Overview Stats -->
+    <section class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon bg-blue">👥</div>
+        <div>
+          <h3 id="statTotalStudents">0</h3>
+          <p>Total Enrolled</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-purple">🏛️</div>
+        <div>
+          <h3 id="statTotalDepartments">0</h3>
+          <p>Departments</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon bg-green">🛡️</div>
+        <div>
+          <h3 id="statUserRole">Guest</h3>
+          <p>Current Access</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Content Card -->
+    <section class="card">
+      <!-- Toolbar: Search, Filter & Actions -->
+      <div class="toolbar">
+        <div class="toolbar-left">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search by name, ID, email..." oninput="handleSearch()" />
+          </div>
+
+          <div class="filter-box">
+            <label for="deptFilter">Dept:</label>
+            <select id="deptFilter" onchange="handleFilter()">
+              <option value="All">All Departments</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toolbar-right">
+          <button id="addStudentBtn" class="btn btn-success" onclick="openAddModal()">
+            <span>➕</span> Add Student
+          </button>
+        </div>
+      </div>
+
+      <!-- Students Table -->
+      <div class="table-responsive">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Department</th>
+              <th>Year</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody">
+            <tr>
+              <td colspan="7" class="loading-cell">Loading students...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="empty-state hidden">
+        <div class="empty-icon">📂</div>
+        <h3>No students found</h3>
+        <p>Try clearing your search query or add a new student record.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: Add / Edit Student -->
+  <div id="studentModal" class="modal-backdrop hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add New Student</h2>
+        <button class="close-btn" onclick="closeStudentModal()">&times;</button>
+      </div>
+
+      <form id="studentForm" onsubmit="handleSaveStudent(event)">
+        <input type="hidden" id="editStudentMongoId" />
+
+        <div class="form-group">
+          <label for="formStudentId">Student ID *</label>
+          <input type="text" id="formStudentId" placeholder="e.g. STU101" required />
+        </div>
+
+        <div class="form-group">
+          <label for="formName">Full Name *</label>
+          <input type="text" id="formName" placeholder="e.g. John Doe" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="formEmail">Email Address *</label>
+            <input type="email" id="formEmail" placeholder="john@example.com" required />
+          </div>
+
+          <div class="form-group">
+            <label for="formPhone">Phone Number *</label>
+            <input type="text" id="formPhone" placeholder="+1-555-0101" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="formDept">Department *</label>
+            <select id="formDept" required>
+              <option value="" disabled selected>Select department</option>
+              <option value="Computer Science">Computer Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Mechanical">Mechanical</option>
+              <option value="Civil">Civil</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="formYear">Year of Study *</label>
+            <select id="formYear" required>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeStudentModal()">Cancel</button>
+          <button type="submit" id="saveStudentBtn" class="btn btn-primary">Save Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: Authentication (Login & Register) -->
+  <div id="authModal" class="modal-backdrop hidden">
+    <div class="modal-card auth-card">
+      <div class="modal-header">
+        <h2 id="authModalTitle">Sign In</h2>
+        <button class="close-btn" onclick="closeAuthModal()">&times;</button>
+      </div>
+
+      <!-- Tab toggle: Login vs Register -->
+      <div class="auth-tabs">
+        <button id="tabLogin" class="tab-btn active" onclick="switchAuthTab('login')">Login</button>
+        <button id="tabRegister" class="tab-btn" onclick="switchAuthTab('register')">Register</button>
+      </div>
+
+      <!-- Quick Demo Credentials Banner -->
+      <div class="demo-creds">
+        <span>💡 <strong>Quick Demo Admin:</strong> <code>admin@example.com</code> / <code>admin123</code></span>
+      </div>
+
+      <form id="authForm" onsubmit="handleAuthSubmit(event)">
+        <!-- Register Only Name field -->
+        <div id="registerNameGroup" class="form-group hidden">
+          <label for="authName">Full Name</label>
+          <input type="text" id="authName" placeholder="Enter your full name" />
+        </div>
+
+        <div class="form-group">
+          <label for="authEmail">Email Address</label>
+          <input type="email" id="authEmail" placeholder="admin@example.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" placeholder="••••••••" required />
+        </div>
+
+        <!-- Register Only Role field -->
+        <div id="registerRoleGroup" class="form-group hidden">
+          <label for="authRole">Account Role</label>
+          <select id="authRole">
+            <option value="user">User (Read-only)</option>
+            <option value="admin">Admin (Full Edit/Delete)</option>
+          </select>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAuthModal()">Cancel</button>
+          <button type="submit" id="authSubmitBtn" class="btn btn-primary">Sign In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast hidden">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMessage">Notification message</span>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
